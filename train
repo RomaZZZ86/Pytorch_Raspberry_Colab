@@ -1,0 +1,24 @@
+import torch # Keep in mind that YOLOv5 runs on top of PyTorch, so we need to import it to the notebook
+
+#from IPython.display import Image #this is to render predictions
+!git clone https://github.com/zldrobit/yolov5.git
+%cd yolov5
+!git checkout tf-android
+
+!pip install -r requirements.txt
+
+!pip install tensorflow==2.3.1 #Keep this version of TF as YOLOv5 works well with it.
+print('All set. Using PyTorch version %s with %s' % (torch.__version__, torch.cuda.get_device_properties(0) if torch.cuda.is_available() else 'CPU'))
+
+%cd /content
+
+!git clone https://github.com/sergiovirahonda/FaceMaskDataset
+
+%cd /content/yolov5
+!python train.py --img 415 --batch 16 --epochs 100 --data dataset.yaml --weights yolov5s.pt --cache
+
+import tensorflow as tf
+print(tf.__version__)
+!PYTHONPATH=. python3 /content/yolov5/models/tf.py --weight /content/yolov5/runs/train/exp2/weights/best.pt --cfg models/yolov5s.yaml --img 416 --source /content/FaceMaskDataset/images/train
+
+!python detect.py --weight /content/yolov5/runs/train/exp2/weights/best-fp16.tflite --img 416 --source ../test_images
